@@ -7,7 +7,7 @@ namespace INLINQ.Orc.ColumnTypes
     public class StructWriter : IColumnWriter
     {
         //Assume all root values are present
-        public static long WriteBlockMilliseconds { get; private set; }
+        //public static long WriteBlockMilliseconds { get; private set; }
         public StructWriter(OrcCompressedBufferFactory bufferFactory, uint columnId)
         {
             ColumnId = columnId;
@@ -43,8 +43,8 @@ namespace INLINQ.Orc.ColumnTypes
 
         public int AddBlock(/* object[] values,*/  int valueCount)
         {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
+            //Stopwatch sw = new Stopwatch();
+            //sw.Start();
             BooleanWriterStatistics? stats = new();
             Statistics.Add(stats);
             foreach (OrcCompressedBuffer? buffer in Buffers)
@@ -53,7 +53,7 @@ namespace INLINQ.Orc.ColumnTypes
             }
 
             stats.NumValues += (uint)valueCount;
-            WriteBlockMilliseconds += sw.ElapsedMilliseconds;
+            //WriteBlockMilliseconds += sw.ElapsedMilliseconds;
             return valueCount;
         }
 

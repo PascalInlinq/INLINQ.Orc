@@ -47,11 +47,8 @@ namespace INLINQ.Orc
         {
             _ = _inputStream.Seek(-1 - postScriptLength - (long)postScript.FooterLength, SeekOrigin.End);
             StreamSegment? compressedStream = new(_inputStream, (long)postScript.FooterLength, true);
-            Stream? footerStream = OrcCompression.GetDecompressingStream(compressedStream, postScript.Compression);
-
-            return Serializer.Deserialize<Protocol.Footer>(footerStream);
-            //Protocol.Footer footer = StreamSegment.ReadObject<Protocol.Footer>(footerStream, (long)postScript.FooterLength);
-            //return footer;
+            ConcatenatingStream footerStream = OrcCompression.GetDecompressingStream(compressedStream, postScript.Compression);
+            return Serializer.Deserialize<Protocol.Footer>(footerStream.ReadAll().AsSpan());
 
         }
     }

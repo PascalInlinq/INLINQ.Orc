@@ -23,11 +23,11 @@ namespace INLINQ.Orc.Stripes
         private long _contentLength;
         private readonly List<Protocol.StripeInformation> _stripeInformations = new();
         public readonly Protocol.ColumnType[] _columnTypes;
-        public static long addRowsTotalMilliSeconds = 0;
+        //public static long addRowsTotalMilliSeconds = 0;
         //public static long completeStrideMilliSecondsA = 0;
         //public static long completeStrideMilliSecondsB = 0;
-        public static long completeStripeMilliSeconds = 0;
-        public static long copyToMilliSeconds = 0;
+        //public static long completeStripeMilliSeconds = 0;
+        //public static long copyToMilliSeconds = 0;
         //public static long callCount = 0;
         //public static long structCallCount = 0;
 
@@ -48,8 +48,8 @@ namespace INLINQ.Orc.Stripes
 
         public void AddRows(IEnumerable<TPoco> rows)
         {
-            Stopwatch sw = new();
-            sw.Start();
+            //Stopwatch sw = new();
+            //sw.Start();
             if (_rowAddingCompleted)
             {
                 throw new InvalidOperationException("Row adding has been completed");
@@ -110,7 +110,7 @@ namespace INLINQ.Orc.Stripes
                 }
             }
 
-            addRowsTotalMilliSeconds += sw.ElapsedMilliseconds;
+            //addRowsTotalMilliSeconds += sw.ElapsedMilliseconds;
             RowAddingCompleted();
         }
 
@@ -190,8 +190,8 @@ namespace INLINQ.Orc.Stripes
             stripeInformation.NumberOfRows = (ulong)_rowsInStripe;
 
             //Indexes
-            var sw2 = new Stopwatch();
-            sw2.Start();
+            //var sw2 = new Stopwatch();
+            //sw2.Start();
             foreach (TypedColumnWriterDetails<TPoco>? writer in _columnWriters)
             {
                 //Write the index buffer
@@ -231,7 +231,7 @@ namespace INLINQ.Orc.Stripes
                     stripeFooter.AddDataStream(writer.ColumnWriter.ColumnId, buffer);
                 }
             }
-            copyToMilliSeconds += sw2.ElapsedMilliseconds;
+            //copyToMilliSeconds += sw2.ElapsedMilliseconds;
 
             stripeInformation.DataLength = (ulong)_outputStream.Position - stripeInformation.IndexLength - stripeInformation.Offset;
 
@@ -248,7 +248,7 @@ namespace INLINQ.Orc.Stripes
                 writer.ColumnWriter.Reset();
             }
 
-            completeStripeMilliSeconds += sw.ElapsedMilliseconds;
+            //completeStripeMilliSeconds += sw.ElapsedMilliseconds;
         }
 
         private static Tuple<Protocol.ColumnType[], TypedColumnWriterDetails<TPoco>[]> CreateColumnWriters(bool shouldAlignNumericValues, double uniqueStringThresholdRatio
@@ -339,8 +339,6 @@ namespace INLINQ.Orc.Stripes
             , int defaultDecimalScale, double uniqueStringThresholdRatio)
         {
             Type? propertyType = propertyInfo.PropertyType;
-
-            //TODO move this to a pattern match switch
             Type underlyingType = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
             bool isNullable = Nullable.GetUnderlyingType(propertyInfo.PropertyType) != null;
 

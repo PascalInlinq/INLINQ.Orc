@@ -6,17 +6,9 @@ namespace INLINQ.Orc.Encodings
     {
         private readonly byte[] _inputStreamBuffer;
 
-        public ByteRunLengthEncodingReader(Stream inputStream)
+        public ByteRunLengthEncodingReader(ConcatenatingStream inputStream)
         {
-            if (inputStream.GetType() == typeof(ConcatenatingStream))
-            {
-                _inputStreamBuffer = ((ConcatenatingStream)inputStream).ReadAll();
-            }
-            else
-            {
-                _inputStreamBuffer = new byte[inputStream.Length];
-                _ = inputStream.Read(_inputStreamBuffer, 0, (int)inputStream.Length);
-            }
+            _inputStreamBuffer = inputStream.ReadAll();
         }
 
         public IEnumerable<byte> Read()

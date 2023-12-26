@@ -542,50 +542,51 @@ namespace INLINQ.Orc.Encodings
             stream.WriteVarIntUnsigned(ref streamIndex, encodedValue);
         }
 
-        public static BigInteger? ReadBigVarInt(this Stream stream)
-        {
-            BigInteger result = BigInteger.Zero;
-            long currentLong = 0;
-            long currentByte;
-            int bitCount = 0;
-            do
-            {
-                currentByte = stream.ReadByte();
-                if (currentByte < 0)
-                {
-                    return null;        //Reached the end of the stream
-                }
+        //public static BigInteger? ReadBigVarInt(this Stream stream)
+        //{
+        //    BigInteger result = BigInteger.Zero;
+        //    long currentLong = 0;
+        //    long currentByte;
+        //    int bitCount = 0;
+        //    do
+        //    {
+        //        currentByte = stream.ReadByte();
+        //        if (currentByte < 0)
+        //        {
+        //            return null;        //Reached the end of the stream
+        //        }
 
-                currentLong |= (currentByte & 0x7f) << (bitCount % 63);
-                bitCount += 7;
+        //        currentLong |= (currentByte & 0x7f) << (bitCount % 63);
+        //        bitCount += 7;
 
-                if (bitCount % 63 == 0)
-                {
-                    if (bitCount == 63)
-                    {
-                        result = new BigInteger(currentLong);
-                    }
-                    else
-                    {
-                        result |= new BigInteger(currentLong) << (bitCount - 63);
-                    }
+        //        if (bitCount % 63 == 0)
+        //        {
+        //            if (bitCount == 63)
+        //            {
+        //                result = new BigInteger(currentLong);
+        //            }
+        //            else
+        //            {
+        //                result |= new BigInteger(currentLong) << (bitCount - 63);
+        //            }
 
-                    currentLong = 0;
-                }
-            }
-            while (currentByte >= 0x80);        //Done when the high bit is not set
+        //            currentLong = 0;
+        //        }
+        //    }
+        //    while (currentByte >= 0x80);        //Done when the high bit is not set
 
-            if (currentLong != 0)      //Some bits left to add to result
-            {
-                int shift = (bitCount / 63) * 63;
-                result |= new BigInteger(currentLong) << shift;
-            }
+        //    if (currentLong != 0)      //Some bits left to add to result
+        //    {
+        //        int shift = (bitCount / 63) * 63;
+        //        result |= new BigInteger(currentLong) << shift;
+        //    }
 
-            //Un zig-zag
-            result = (result >> 1) ^ -(result & 1);
+        //    //Un zig-zag
+        //    result = (result >> 1) ^ -(result & 1);
 
-            return result;
-        }
+        //    return result;
+        //}
+
 
         public static void WriteVarIntSigned(this Stream stream, uint low, uint mid, uint high, bool isNegative)
         {

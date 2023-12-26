@@ -26,7 +26,7 @@ namespace INLINQ.Orc.Stripes
         public Protocol.StreamKind StreamKind { get; }
         public Protocol.ColumnEncodingKind ColumnEncodingKind { get; }
 
-        public Stream GetDecompressedStream()
+        public ConcatenatingStream GetDecompressedStream()
         {
             //TODO move from using Streams to using MemoryMapped files or another data type that decouples the Stream Position from the Read call, allowing re-entrancy
             _ = _inputStream.Seek(_inputStreamOffset, System.IO.SeekOrigin.Begin);

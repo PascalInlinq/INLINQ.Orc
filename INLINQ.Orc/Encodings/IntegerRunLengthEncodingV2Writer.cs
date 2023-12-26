@@ -8,9 +8,9 @@ namespace INLINQ.Orc.Encodings
     {
         private const int WINDOW_SIZE = 512;
         //private readonly Stream _outputStream;
-        public static long totalBytesWritten { get; private set; }
-        public static long copyCount { get; private set; }
-        public static long totalMilliSeconds { get; private set; }
+        //public static long totalBytesWritten { get; private set; }
+        //public static long copyCount { get; private set; }
+        //public static long totalMilliSeconds { get; private set; }
 
         //public IntegerRunLengthEncodingV2Writer(Stream outputStream)
         //{
@@ -19,8 +19,8 @@ namespace INLINQ.Orc.Encodings
 
         public static void Write(Stream outputStream, ReadOnlySpan<long> values, bool areSigned, bool aligned)
         {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
+            //Stopwatch sw = new Stopwatch();
+            //sw.Start();
             int valueCount = values.Length;
             int position = 0;
             //byte[] streamBuffer = new byte[WINDOW_SIZE * (sizeof(long) + 1)]; /* gross overestimation of maximum buffer required */
@@ -43,10 +43,10 @@ namespace INLINQ.Orc.Encodings
                     streamPosition = 0;
                 }
 
-                totalBytesWritten += streamIndex;
+                //totalBytesWritten += streamIndex;
             }
 
-            totalMilliSeconds += sw.ElapsedMilliseconds;
+            //totalMilliSeconds += sw.ElapsedMilliseconds;
         }
 
         private static int EncodeValues(Span<byte> stream, ref int streamIndex, ReadOnlySpan<long> values, bool areSigned, bool aligned)
@@ -74,7 +74,7 @@ namespace INLINQ.Orc.Encodings
                     {
                         zigs[i] = values[i].ZigzagEncode();
                     }
-                    copyCount += values.Length;
+                    //copyCount += values.Length;
                     zigZaggedValues = new ReadOnlySpan<long>(zigs);
                 }
                 DirectEncode(stream, ref streamIndex, zigZaggedValues, values.Length, aligned, fixedBitWidth);
@@ -103,7 +103,7 @@ namespace INLINQ.Orc.Encodings
                     {
                         zigs[i] = values[i].ZigzagEncode();
                     }
-                    copyCount += values.Length;
+                    //copyCount += values.Length;
                     zigZaggedValues = new ReadOnlySpan<long>(zigs);
                 }
                 DirectEncode(stream, ref streamIndex, zigZaggedValues, values.Length, aligned, fixedBitWidth);
@@ -119,7 +119,7 @@ namespace INLINQ.Orc.Encodings
                 {
                     zigs[i] = values[i].ZigzagEncode();
                 }
-                copyCount += values.Length;
+                //copyCount += values.Length;
                 zigZaggedValues = new ReadOnlySpan<long>(zigs);
             }
 

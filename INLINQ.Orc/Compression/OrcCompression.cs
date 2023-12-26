@@ -9,17 +9,17 @@ namespace INLINQ.Orc.Compression
 
     public static class OrcCompression
     {
-        public static long copyToTotalMilliSeconds { get; private set; }
+        //public static long copyToTotalMilliSeconds { get; private set; }
 
         /// <summary>
         /// Provides a Stream that when read from, reads consecutive blocks of compressed data from an ORC Stream.
         /// All data in the <paramref name="inputStream"/> will be consumed.
         /// </summary>
-        public static IOStream GetDecompressingStream(IOStream inputStream, CompressionKind compressionKind)
+        public static ConcatenatingStream GetDecompressingStream(IOStream inputStream, CompressionKind compressionKind)
         {
             if (compressionKind == CompressionKind.None)
             {
-                return inputStream;
+                return new ConcatenatingStream(inputStream, false);
             }
             else
             {
@@ -93,8 +93,8 @@ namespace INLINQ.Orc.Compression
         /// <param name="compressionStrategy">The balance of speed vs size for the compressor</param>
         public static void CompressCopyTo(MemoryStream uncompressedSource, IOStream compressedDestination, CompressionKind compressionKind, CompressionStrategy compressionStrategy)
         {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
+            //Stopwatch sw = new Stopwatch();
+            //sw.Start();
             _ = uncompressedSource.Seek(0, SeekOrigin.Begin);
 
             if (compressionKind == CompressionKind.None)
@@ -124,7 +124,7 @@ namespace INLINQ.Orc.Compression
                 }
             }
 
-            copyToTotalMilliSeconds += sw.ElapsedMilliseconds;
+            //copyToTotalMilliSeconds += sw.ElapsedMilliseconds;
         }
 
         private static bool ReadBlockHeader(IOStream inputStream, out int blockLength, out bool isCompressed)

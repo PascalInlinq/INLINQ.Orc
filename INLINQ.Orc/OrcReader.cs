@@ -12,13 +12,13 @@ namespace INLINQ.Orc
         private readonly FileTail _fileTail;
         private readonly bool _ignoreMissingColumns;
 
-        public static long timeReadLong { get; private set; }
-        public static long timeSetLong { get; private set; }
-        public static long timeStripStreamCollection { get; private set; }
-        public static long timeStreamNext { get; private set; }
-        public static long timeTotal { get; private set; }
-        public static long timeInvestigate { get; private set; }
-        public static long timeInit { get; private set; }
+        //public static long timeReadLong { get; private set; }
+        //public static long timeSetLong { get; private set; }
+        //public static long timeStripStreamCollection { get; private set; }
+        //public static long timeStreamNext { get; private set; }
+        //public static long timeTotal { get; private set; }
+        //public static long timeInvestigate { get; private set; }
+        //public static long timeInit { get; private set; }
 
         public OrcReader(Type type, Stream inputStream, bool ignoreMissingColumns = false)
         {
@@ -116,10 +116,10 @@ namespace INLINQ.Orc
         public IEnumerable<T> Read<T>() where T: new()
         {
             List<(PropertyInfo propertyInfo, uint columnId, Protocol.ColumnTypeKind columnType)>? properties = FindColumnsForType(_type, _fileTail.Footer).ToList();
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
+            //Stopwatch sw = new Stopwatch();
+            //sw.Start();
             long lastStop = 0;
-            timeInit -= lastStop - (lastStop = sw.ElapsedMilliseconds);
+            //timeInit -= lastStop - (lastStop = sw.ElapsedMilliseconds);
 
             ulong maxNumRows = 0;
             foreach (Stripes.StripeReader? stripe in _fileTail.Stripes)
@@ -137,16 +137,16 @@ namespace INLINQ.Orc
             foreach (Stripes.StripeReader? stripe in _fileTail.Stripes)
             {
                 //init result array:
-                lastStop = sw.ElapsedMilliseconds;
+                //lastStop = sw.ElapsedMilliseconds;
                 var stripeStart = lastStop;
                 for (ulong i = 0; i < stripe.NumRows; i++)
                 {
                     objects[i] = Helpers.FastActivator<T>.Create();
                 }
 
-                timeStreamNext -= lastStop - (lastStop = sw.ElapsedMilliseconds);
+                //timeStreamNext -= lastStop - (lastStop = sw.ElapsedMilliseconds);
                 Stripes.StripeStreamReaderCollection? stripeStreams = stripe.GetStripeStreamCollection();
-                timeStripStreamCollection -= lastStop - (lastStop = sw.ElapsedMilliseconds);
+                //timeStripStreamCollection -= lastStop - (lastStop = sw.ElapsedMilliseconds);
                 foreach (var p in properties)
                 {
                     uint columnId = p.columnId;
@@ -157,12 +157,12 @@ namespace INLINQ.Orc
                         case Protocol.ColumnTypeKind.Long:
                         case Protocol.ColumnTypeKind.Int:
                         case Protocol.ColumnTypeKind.Short:
-                            lastStop = sw.ElapsedMilliseconds;
+                            //lastStop = sw.ElapsedMilliseconds;
                             long[] longColumn = new long[stripe.NumRows];
                             hasPresent = ColumnTypes.LongReader.ReadAll(stripeStreams, columnId, presentMaps, longColumn);
-                            timeReadLong -= lastStop - (lastStop = sw.ElapsedMilliseconds);
+                            //timeReadLong -= lastStop - (lastStop = sw.ElapsedMilliseconds);
                             SetValues(propertyInfo, hasPresent, presentMaps, longColumn, objects, stripe.NumRows);
-                            timeSetLong -= lastStop - (lastStop = sw.ElapsedMilliseconds);
+                            //timeSetLong -= lastStop - (lastStop = sw.ElapsedMilliseconds);
                             break;
                         case Protocol.ColumnTypeKind.Byte:
                             byte[] byteColumn = new byte[stripe.NumRows];
@@ -214,7 +214,7 @@ namespace INLINQ.Orc
                     }
                 }
 
-                timeTotal += sw.ElapsedMilliseconds - stripeStart;
+                //timeTotal += sw.ElapsedMilliseconds - stripeStart;
 
                 for (ulong i = 0; i < stripe.NumRows; i++)
                 {
