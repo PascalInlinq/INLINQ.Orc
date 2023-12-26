@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Data\decimal.orc" />
+    <None Remove="Data\demo-12-zlib.orc" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data\decimal.orc" />
+    <EmbeddedResource Include="Data\demo-12-zlib.orc" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="8.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="protobuf-net" Version="3.2.30" />
+    <PackageReference Include="xunit" Version="2.6.4" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.6">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\INLINQ.Orc\INLINQ.Orc.csproj" />
+  </ItemGroup>
+
+</Project>
