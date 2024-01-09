@@ -116,13 +116,8 @@ namespace INLINQ.Orc
         public IEnumerable<T> Read<T>() where T: new()
         {
             List<(PropertyInfo propertyInfo, uint columnId, Protocol.ColumnTypeKind columnType)>? properties = FindColumnsForType(_type, _fileTail.Footer).ToList();
-            //Stopwatch sw = new Stopwatch();
-            //sw.Start();
-            long lastStop = 0;
-            //timeInit -= lastStop - (lastStop = sw.ElapsedMilliseconds);
-
             ulong maxNumRows = 0;
-            foreach (Stripes.StripeReader? stripe in _fileTail.Stripes)
+            foreach (Stripes.StripeReader stripe in _fileTail.Stripes)
             {
                 if (stripe.NumRows > maxNumRows)
                 {
@@ -134,19 +129,15 @@ namespace INLINQ.Orc
             byte[] presentMaps = new byte[(maxNumRows + 7) / 8];
             T[] objects = new T[maxNumRows];
 
-            foreach (Stripes.StripeReader? stripe in _fileTail.Stripes)
+            foreach (Stripes.StripeReader stripe in _fileTail.Stripes)
             {
                 //init result array:
-                //lastStop = sw.ElapsedMilliseconds;
-                var stripeStart = lastStop;
                 for (ulong i = 0; i < stripe.NumRows; i++)
                 {
                     objects[i] = Helpers.FastActivator<T>.Create();
                 }
 
-                //timeStreamNext -= lastStop - (lastStop = sw.ElapsedMilliseconds);
                 Stripes.StripeStreamReaderCollection? stripeStreams = stripe.GetStripeStreamCollection();
-                //timeStripStreamCollection -= lastStop - (lastStop = sw.ElapsedMilliseconds);
                 foreach (var p in properties)
                 {
                     uint columnId = p.columnId;
@@ -157,12 +148,9 @@ namespace INLINQ.Orc
                         case Protocol.ColumnTypeKind.Long:
                         case Protocol.ColumnTypeKind.Int:
                         case Protocol.ColumnTypeKind.Short:
-                            //lastStop = sw.ElapsedMilliseconds;
                             long[] longColumn = new long[stripe.NumRows];
                             hasPresent = ColumnTypes.LongReader.ReadAll(stripeStreams, columnId, presentMaps, longColumn);
-                            //timeReadLong -= lastStop - (lastStop = sw.ElapsedMilliseconds);
                             SetValues(propertyInfo, hasPresent, presentMaps, longColumn, objects, stripe.NumRows);
-                            //timeSetLong -= lastStop - (lastStop = sw.ElapsedMilliseconds);
                             break;
                         case Protocol.ColumnTypeKind.Byte:
                             byte[] byteColumn = new byte[stripe.NumRows];
@@ -213,8 +201,6 @@ namespace INLINQ.Orc
                             throw new NotImplementedException($"Column type {p.columnType} is not supported");
                     }
                 }
-
-                //timeTotal += sw.ElapsedMilliseconds - stripeStart;
 
                 for (ulong i = 0; i < stripe.NumRows; i++)
                 {

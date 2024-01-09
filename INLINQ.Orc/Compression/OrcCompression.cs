@@ -9,8 +9,6 @@ namespace INLINQ.Orc.Compression
 
     public static class OrcCompression
     {
-        //public static long copyToTotalMilliSeconds { get; private set; }
-
         /// <summary>
         /// Provides a Stream that when read from, reads consecutive blocks of compressed data from an ORC Stream.
         /// All data in the <paramref name="inputStream"/> will be consumed.
@@ -123,8 +121,6 @@ namespace INLINQ.Orc.Compression
                     temporaryStream.CopyTo(compressedDestination);
                 }
             }
-
-            //copyToTotalMilliSeconds += sw.ElapsedMilliseconds;
         }
 
         private static bool ReadBlockHeader(IOStream inputStream, out int blockLength, out bool isCompressed)

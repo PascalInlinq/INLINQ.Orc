@@ -35,13 +35,8 @@ namespace INLINQ.Orc.ColumnTypes
                 throw new NotImplementedException($"Unimplemented Numeric {nameof(Protocol.ColumnEncodingKind)} {stripeStream.ColumnEncodingKind}");
             }
 
-            //Stopwatch sw = new();
-            //sw.Start();
-            long lastStop = 0;
             ConcatenatingStream stream = stripeStream.GetDecompressedStream();
-            //TimeDecompress -= lastStop - (lastStop = sw.ElapsedMilliseconds);
             IntegerRunLengthEncodingV2Reader.ReadToArray(stream, isSigned, data);
-            //TimeReadAll += sw.ElapsedMilliseconds;
         }
 
         public static uint ReadBooleanStreamToPresentMap(StripeStreamReaderCollection stripeStreams, uint columnId, Protocol.StreamKind streamKind, byte[] presentMap)

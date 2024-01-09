@@ -17,12 +17,9 @@ namespace INLINQ.Orc.Encodings
 
         public static void ReadToArray(ConcatenatingStream inputStream, bool isSigned, long[] data)
         {
-            //Stopwatch sw = new();
-            //sw.Start();
             byte[] inputStreamBuffer = inputStream.ReadAll();
             uint streamIndex = 0;
-            //timeIntegerStreamReading += sw.ElapsedMilliseconds;
-
+            
             int dataIndex = 0;
             while (streamIndex < inputStreamBuffer.Length)
             {
