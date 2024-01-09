@@ -1,9 +1,12 @@
-﻿namespace INLINQ.Orc.Infrastructure
+﻿using INLINQ.Orc.Encodings;
+using System.Numerics;
+
+namespace INLINQ.Orc.Infrastructure
 {
     /// <summary>
     /// A read-only Stream that calls out to a provider when data has been exhausted
     /// </summary>
-    public class ConcatenatingStream : Stream
+    public class ConcatenatingStream : IDisposable// Stream
     {
         private readonly Func<Stream?> _nextStreamProvider;
         private readonly bool _keepStreamsOpen;
@@ -21,102 +24,17 @@
             _keepStreamsOpen = keepStreamsOpen;
         }
 
-        public override int Read(byte[] buffer, int offset, int count)
+        public ConcatenatingStream(Stream stream, bool keepStreamsOpen)
         {
-            if (_readingHasEnded)
-            {
-                return 0;
-            }
-
-            if (_currentStream == null)
-            {
-                _currentStream = _nextStreamProvider();
-                if (_currentStream == null)
-                {
-                    //No additional streams are available. Reading is done.
-                    _readingHasEnded = true;
-                    return 0;
-                }
-            }
-
-            //int bytesReadFromCurrentStream = _currentStream.Read(buffer, offset, count);
-            //while (bytesReadFromCurrentStream < count)
-            //{
-            //    if (!_keepStreamsOpen)
-            //    {
-            //        _currentStream.Dispose();
-            //    }
-
-            //    _currentStream = _nextStreamProvider();
-            //    if (_currentStream == null)
-            //    {
-            //        //No additional streams are available. Reading is done.
-            //        _readingHasEnded = true;
-            //        return 0;
-            //    }
-
-            //    bytesReadFromCurrentStream += _currentStream.Read(buffer, offset + bytesReadFromCurrentStream, count - bytesReadFromCurrentStream);
-            //}
-
-            //return bytesReadFromCurrentStream;
-
-            int bytesReadFromCurrentStream = _currentStream.Read(buffer, offset, count);
-            if (bytesReadFromCurrentStream == 0)
-            {
-                if (!_keepStreamsOpen)
-                {
-                    _currentStream.Dispose();
-                }
-
-                _currentStream = null;
-                return Read(buffer, offset, count);     //Recurse, loading a new stream
-            }
-            else
-            {
-                return bytesReadFromCurrentStream;
-            }
+            _nextStreamProvider = () => { var result = stream; stream = null; return result; };
+            _keepStreamsOpen = keepStreamsOpen;
         }
 
-        //public byte[] ReadNext()
-        //{
-        //    if (_readingHasEnded)
-        //    {
-        //        return new byte[0];
-        //    }
-
-        //    if (_currentStream == null)
-        //    {
-        //        _currentStream = _nextStreamProvider();
-        //        if (_currentStream == null)
-        //        {
-        //            //No additional streams are available. Reading is done.
-        //            _readingHasEnded = true;
-        //            return new byte[0];
-        //        }
-        //    }
-
-        //    byte[] result = new byte[_currentStream.Length];
-        //    int bytesReadFromCurrentStream = _currentStream.Read(result, 0, (int)_currentStream.Length);
-        //    if (bytesReadFromCurrentStream == 0)
-        //    {
-        //        if (!_keepStreamsOpen)
-        //        {
-        //            _currentStream.Dispose();
-        //        }
-
-        //        _currentStream = null;
-        //        return ReadNext();     //Recurse, loading a new stream
-        //    }
-        //    else
-        //    {
-        //        return result;
-        //    }
-        //}
 
         public byte[] ReadAll()
         {
             List<Tuple<byte[], int>> buffers = new List<Tuple<byte[], int>>();
-            const int bufferSize = 1024 * 16;
+            const int bufferSize = 1024 * 16; //TODO: test impact
             int totalSize = 0;
 
             while (true)
@@ -166,7 +84,12 @@
 
         }
 
-        protected override void Dispose(bool disposing)
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected void Dispose(bool disposing)
         {
             if (disposing)
             {
@@ -178,45 +101,55 @@
 
                 _currentStream = null;
             }
-            base.Dispose(disposing);
+            
         }
 
-        public override bool CanRead => true;
-        public override bool CanSeek => false;
-        public override bool CanWrite => false;
-        public override long Length
+        public IEnumerable<BigInteger> ReadAllBigVarInt()
         {
-            get
+            var stream = ReadAll();
+            int streamIndex = 0;
+            while(streamIndex < stream.Length)
             {
-                throw new NotImplementedException();    //We can't determine the final length because we don't have access to future streams
+                BigInteger result = BigInteger.Zero;
+                long currentLong = 0;
+                long currentByte;
+                int bitCount = 0;
+                do
+                {
+                    currentByte = stream[streamIndex++];
+                    currentLong |= (currentByte & 0x7f) << (bitCount % 63);
+                    bitCount += 7;
+
+                    if (bitCount % 63 == 0)
+                    {
+                        if (bitCount == 63)
+                        {
+                            result = new BigInteger(currentLong);
+                        }
+                        else
+                        {
+                            result |= new BigInteger(currentLong) << (bitCount - 63);
+                        }
+
+                        currentLong = 0;
+                    }
+                }
+                while (currentByte >= 0x80);        //Done when the high bit is not set
+
+                if (currentLong != 0)      //Some bits left to add to result
+                {
+                    int shift = (bitCount / 63) * 63;
+                    result |= new BigInteger(currentLong) << shift;
+                }
+
+                //Un zig-zag
+                result = (result >> 1) ^ -(result & 1);
+
+                yield return result;
             }
+
         }
-        public override long Position
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
-        public override void Flush()
-        {
-            throw new NotImplementedException();
-        }
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            throw new NotImplementedException();
-        }
-        public override void SetLength(long value)
-        {
-            throw new NotImplementedException();
-        }
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            throw new NotImplementedException();
-        }
+
+        
     }
 }

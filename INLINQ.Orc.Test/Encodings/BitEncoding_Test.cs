@@ -1,4 +1,5 @@
 ﻿using INLINQ.Orc.Encodings;
+using INLINQ.Orc.Infrastructure;
 using Xunit;
 
 namespace INLINQ.Orc.Test.Encodings
@@ -54,7 +55,7 @@ namespace INLINQ.Orc.Test.Encodings
         private static void TestRead(bool[] expected, byte[] input)
         {
             MemoryStream stream = new(input);
-            BitReader reader = new(stream);
+            BitReader reader = new(new ConcatenatingStream(stream, true));
             bool[] actual = reader.Read().ToArray();
             Assert.Equal(expected.Length, actual.Length);
             for (int i = 0; i < expected.Length; i++)
@@ -91,7 +92,7 @@ namespace INLINQ.Orc.Test.Encodings
 
             _ = stream.Seek(0, SeekOrigin.Begin);
 
-            BitReader reader = new(stream);
+            BitReader reader = new(new ConcatenatingStream(stream, true));
             bool[] result = reader.Read().ToArray();
 
             //Make sure all bytes in the written stream were consumed

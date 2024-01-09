@@ -13,8 +13,9 @@ namespace INLINQ.Orc.Infrastructure
         public static T ReadObject<T>(Stream underlyingStream, long lengthToExpose) where T : new()
         {
             byte[] buffer = new byte[lengthToExpose];
+            Span<byte> span = buffer;
+            _ = underlyingStream.Read(span);
             ReadOnlyMemory<byte> source = new ReadOnlyMemory<byte>(buffer);
-            int bytesRead = underlyingStream.Read(buffer, 0, (int)lengthToExpose);
             T obj = Serializer.Deserialize(source, new T());
             return obj;
         }

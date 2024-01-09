@@ -1,6 +1,7 @@
 ﻿using INLINQ.Orc.Compression;
 using INLINQ.Orc.Infrastructure;
 using ProtoBuf;
+using System.Runtime.InteropServices;
 
 namespace INLINQ.Orc.Stripes
 {
@@ -34,8 +35,8 @@ namespace INLINQ.Orc.Stripes
         {
             _ = _inputStream.Seek((long)_footerOffset, SeekOrigin.Begin);
             StreamSegment? segment = new(_inputStream, (long)_footerLength, true);
-            Stream stream = OrcCompression.GetDecompressingStream(segment, _compressionKind);
-            return Serializer.Deserialize<Protocol.StripeFooter>(stream);
+            ConcatenatingStream stream = OrcCompression.GetDecompressingStream(segment, _compressionKind);
+            return Serializer.Deserialize<Protocol.StripeFooter>(stream.ReadAll().AsSpan());
         }
 
 

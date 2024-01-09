@@ -7,23 +7,11 @@ namespace INLINQ.Orc.Encodings
     public static class IntegerRunLengthEncodingV2Writer
     {
         private const int WINDOW_SIZE = 512;
-        //private readonly Stream _outputStream;
-        public static long totalBytesWritten { get; private set; }
-        public static long copyCount { get; private set; }
-        public static long totalMilliSeconds { get; private set; }
-
-        //public IntegerRunLengthEncodingV2Writer(Stream outputStream)
-        //{
-        //    _outputStream = outputStream;
-        //}
 
         public static void Write(Stream outputStream, ReadOnlySpan<long> values, bool areSigned, bool aligned)
         {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
             int valueCount = values.Length;
             int position = 0;
-            //byte[] streamBuffer = new byte[WINDOW_SIZE * (sizeof(long) + 1)]; /* gross overestimation of maximum buffer required */
             int maxWindowsBuffer = WINDOW_SIZE * (sizeof(long) + 1); /* gross overestimation of maximum buffer required */
             byte[] streamBuffer = new byte[200 * maxWindowsBuffer];
             int streamPosition = 0;
@@ -35,7 +23,6 @@ namespace INLINQ.Orc.Encodings
                 int numValuesEncoded = EncodeValues(positionedBuffer, ref streamIndex, window, areSigned, aligned);
                 position += numValuesEncoded;
                 streamPosition += streamIndex;
-                //outputStream.Write(streamBuffer, 0, streamIndex);
                 if (streamPosition + maxWindowsBuffer > streamBuffer.Length || position == valueCount)
                 {
                     //flush necessary:
@@ -43,10 +30,7 @@ namespace INLINQ.Orc.Encodings
                     streamPosition = 0;
                 }
 
-                totalBytesWritten += streamIndex;
             }
-
-            totalMilliSeconds += sw.ElapsedMilliseconds;
         }
 
         private static int EncodeValues(Span<byte> stream, ref int streamIndex, ReadOnlySpan<long> values, bool areSigned, bool aligned)
@@ -74,7 +58,7 @@ namespace INLINQ.Orc.Encodings
                     {
                         zigs[i] = values[i].ZigzagEncode();
                     }
-                    copyCount += values.Length;
+                    //copyCount += values.Length;
                     zigZaggedValues = new ReadOnlySpan<long>(zigs);
                 }
                 DirectEncode(stream, ref streamIndex, zigZaggedValues, values.Length, aligned, fixedBitWidth);
@@ -103,7 +87,7 @@ namespace INLINQ.Orc.Encodings
                     {
                         zigs[i] = values[i].ZigzagEncode();
                     }
-                    copyCount += values.Length;
+                    //copyCount += values.Length;
                     zigZaggedValues = new ReadOnlySpan<long>(zigs);
                 }
                 DirectEncode(stream, ref streamIndex, zigZaggedValues, values.Length, aligned, fixedBitWidth);
@@ -119,7 +103,7 @@ namespace INLINQ.Orc.Encodings
                 {
                     zigs[i] = values[i].ZigzagEncode();
                 }
-                copyCount += values.Length;
+                //copyCount += values.Length;
                 zigZaggedValues = new ReadOnlySpan<long>(zigs);
             }
 

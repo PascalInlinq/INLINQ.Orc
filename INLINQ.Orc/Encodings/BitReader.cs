@@ -1,4 +1,5 @@
-﻿using System.Runtime.Intrinsics.X86;
+﻿using INLINQ.Orc.Infrastructure;
+using System.Runtime.Intrinsics.X86;
 
 namespace INLINQ.Orc.Encodings
 {
@@ -6,7 +7,7 @@ namespace INLINQ.Orc.Encodings
     {
         private readonly ByteRunLengthEncodingReader _byteReader;
 
-        public BitReader(Stream inputStream)
+        public BitReader(ConcatenatingStream inputStream)
         {
             _byteReader = new ByteRunLengthEncodingReader(inputStream);
         }

@@ -2,13 +2,14 @@
 using INLINQ.Orc.Encodings;
 using System.Numerics;
 using System.Diagnostics;
+using INLINQ.Orc.Infrastructure;
 
 namespace INLINQ.Orc.ColumnTypes
 {
     public static class ColumnReader
     {   
-        public static long TimeDecompress { get; private set; }
-        public static long TimeReadAll { get; private set; }
+        //public static long TimeDecompress { get; private set; }
+        //public static long TimeReadAll { get; private set; }
 
         private static StripeStreamReader? GetStripeStream(StripeStreamReaderCollection stripeStreams, uint columnId, Protocol.StreamKind streamKind)
         {
@@ -34,13 +35,8 @@ namespace INLINQ.Orc.ColumnTypes
                 throw new NotImplementedException($"Unimplemented Numeric {nameof(Protocol.ColumnEncodingKind)} {stripeStream.ColumnEncodingKind}");
             }
 
-            Stopwatch sw = new();
-            sw.Start();
-            long lastStop = 0;
-            Stream stream = stripeStream.GetDecompressedStream();
-            TimeDecompress -= lastStop - (lastStop = sw.ElapsedMilliseconds);
+            ConcatenatingStream stream = stripeStream.GetDecompressedStream();
             IntegerRunLengthEncodingV2Reader.ReadToArray(stream, isSigned, data);
-            TimeReadAll += sw.ElapsedMilliseconds;
         }
 
         public static uint ReadBooleanStreamToPresentMap(StripeStreamReaderCollection stripeStreams, uint columnId, Protocol.StreamKind streamKind, byte[] presentMap)
@@ -51,7 +47,7 @@ namespace INLINQ.Orc.ColumnTypes
                 return 0;
             }
 
-            Stream stream = stripeStream.GetDecompressedStream();
+            ConcatenatingStream stream = stripeStream.GetDecompressedStream();
             BitReader reader = new(stream);
             uint length = reader.ReadToArray(presentMap);
             return length;
@@ -65,7 +61,7 @@ namespace INLINQ.Orc.ColumnTypes
                 return 0;
             }
 
-            Stream stream = stripeStream.GetDecompressedStream();
+            ConcatenatingStream stream = stripeStream.GetDecompressedStream();
             BitReader reader = new(stream);
             uint length = reader.ReadToArray(data);
             return length;
@@ -79,11 +75,8 @@ namespace INLINQ.Orc.ColumnTypes
                 return null;
             }
 
-            Stream? stream = stripeStream.GetDecompressedStream();
-            MemoryStream? memStream = new();
-            stream.CopyTo(memStream);
-
-            return memStream.ToArray();
+            ConcatenatingStream stream = stripeStream.GetDecompressedStream();
+            return stream.ReadAll();
         }
 
         public static void ReadByteStreamToArray(StripeStreamReaderCollection stripeStreams, uint columnId, Protocol.StreamKind streamKind, byte[] data)
@@ -92,7 +85,7 @@ namespace INLINQ.Orc.ColumnTypes
             StripeStreamReader? stripeStream = GetStripeStream(stripeStreams, columnId, streamKind);
             if (stripeStream != null)
             {
-                Stream? stream = stripeStream.GetDecompressedStream();
+                ConcatenatingStream stream = stripeStream.GetDecompressedStream();
                 ByteRunLengthEncodingReader? reader = new(stream);
                 byte[]? array = reader.Read().ToArray();
 
@@ -113,10 +106,8 @@ namespace INLINQ.Orc.ColumnTypes
                 return null;
             }
 
-            Stream? stream = stripeStream.GetDecompressedStream();
-            VarIntReader? reader = new(stream);
-
-            return reader.Read().ToArray();
+            ConcatenatingStream stream = stripeStream.GetDecompressedStream();
+            return stream.ReadAllBigVarInt().ToArray(); //TODO: inefficient?
         }
 
         public static IEnumerable<T?> Read<T>(byte[] presentMaps, T[] column, bool hasPresent) where T : struct

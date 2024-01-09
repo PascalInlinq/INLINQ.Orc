@@ -1,4 +1,5 @@
 ﻿using INLINQ.Orc.Compression;
+using INLINQ.Orc.Infrastructure;
 using INLINQ.Orc.Protocol;
 using ProtoBuf;
 using Xunit;
@@ -16,8 +17,8 @@ namespace INLINQ.Orc.Test.Protocol
             PostScript postScript = Serializer.Deserialize<PostScript>(postscriptStream);
             ulong footerLength = postScript.FooterLength;
             System.IO.Stream footerStreamCompressed = helper.GetFooterCompressedStream(postscriptLength, footerLength);
-            System.IO.Stream footerStream = OrcCompression.GetDecompressingStream(footerStreamCompressed, CompressionKind.Zlib);
-            Footer footer = Serializer.Deserialize<Footer>(footerStream);
+            var footerStream = OrcCompression.GetDecompressingStream(footerStreamCompressed, CompressionKind.Zlib);
+            Footer footer = Serializer.Deserialize<Footer>(footerStream.ReadAll().AsSpan());
 
             Assert.Equal(1920800ul, footer.NumberOfRows);
             _ = Assert.Single(footer.Stripes);
